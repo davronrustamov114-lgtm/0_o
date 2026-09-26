@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Web Experience</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
+                            '50%': { opacity: '1', transform: 'scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom smooth page tab transitions */
+        .page-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .page-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Glassmorphism backdrop */
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-cyan-500 selection:text-white">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="fixed top-0 left-0 w-full z-50 glass-nav border-b border-slate-800 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" onclick="switchPage('home')" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform duration-300">
+                    N
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                    NEXUS<span class="text-cyan-400">.studio</span>
+                </span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center space-x-1 bg-slate-900/60 p-1.5 rounded-full border border-slate-800">
+                <button onclick="switchPage('home')" id="nav-home" class="nav-btn px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-md">
+                    <i class="fa-solid fa-house mr-2 text-xs"></i>Bosh Sahifa
+                </button>
+                <button onclick="switchPage('about')" id="nav-about" class="nav-btn px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-user-group mr-2 text-xs"></i>Biz Haqimizda
+                </button>
+                <button onclick="switchPage('services')" id="nav-services" class="nav-btn px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-briefcase mr-2 text-xs"></i>Xizmatlar
+                </button>
+                <button onclick="switchPage('contact')" id="nav-contact" class="nav-btn px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-envelope mr-2 text-xs"></i>Aloqa
+                </button>
+            </nav>
+
+            <!-- Call To Action Button -->
+            <div class="hidden md:flex items-center gap-4">
+                <button onclick="switchPage('contact')" class="px-5 py-2.5 rounded-full text-sm font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 hover:border-cyan-400 transition-all duration-300 shadow-sm shadow-cyan-500/10">
+                    Bog'lanish
+                </button>
+            </div>
+
+            <!-- Mobile Menu Toggle Button -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none">
+                <i class="fa-solid fa-bars text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900 border-b border-slate-800 px-4 pt-2 pb-6 space-y-2">
+            <button onclick="switchPage('home'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl text-base font-medium text-white bg-cyan-500/20 text-cyan-400 flex items-center gap-3">
+                <i class="fa-solid fa-house w-5"></i> Bosh Sahifa
+            </button>
+            <button onclick="switchPage('about'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl text-base font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-user-group w-5"></i> Biz Haqimizda
+            </button>
+            <button onclick="switchPage('services'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl text-base font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-briefcase w-5"></i> Xizmatlar
+            </button>
+            <button onclick="switchPage('contact'); toggleMobileMenu();" class="mobile-nav-btn w-full text-left px-4 py-3 rounded-xl text-base font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-envelope w-5"></i> Aloqa
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow pt-24 pb-16">
+
+        <!-- PAGE 1: HOME -->
+        <section id="page-home" class="page-content active">
+            <!-- Hero Section -->
+            <div class="relative overflow-hidden pt-12 pb-20 md:py-28">
+                <!-- Background Glow FX -->
+                <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute top-1/3 right-10 w-72 h-72 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 mb-8 animate-pulse-glow">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Zamonaviy Veb Yechimlar 2026
+                    </span>
+                    
+                    <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+                        Biznesingiz uchun <br class="hidden sm:block">
+                        <span class="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-transparent">
+                            Mukammal Veb-Saytlar
+                        </span>
+                    </h1>
+
+                    <p class="max-w-2xl mx-auto text-lg sm:text-xl text-slate-400 mb-10 leading-relaxed font-light">
+                        Zamonaviy dizayn, yuqori tezlik va eng so'nggi texnologiyalar asosida yaratilgan veb-sahifalar orqali biznesingizni yangi bosqichga olib chiqing.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button onclick="switchPage('services')" class="w-full sm:w-auto px-8 py-4 rounded-full font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 group">
+                            <span>Xizmatlar bilan tanishish</span>
+                            <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="switchPage('contact')" class="w-full sm:w-auto px-8 py-4 rounded-full font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all duration-300">
+                            Loyiha Muhokamasi
+                        </button>
+                    </div>
+
+                    <!-- Hero Stats -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-20 pt-10 border-t border-slate-800/80">
+                        <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/50">
+                            <h3 class="text-3xl font-extrabold text-cyan-400">150+</h3>
+                            <p class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">Bajarilgan loyihalar</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/50">
+                            <h3 class="text-3xl font-extrabold text-cyan-400">99%</h3>
+                            <p class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">Mijozlar mamnuniyati</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/50">
+                            <h3 class="text-3xl font-extrabold text-cyan-400">24/7</h3>
+                            <p class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">Texnik qo'llab-quvvatlash</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/50">
+                            <h3 class="text-3xl font-extrabold text-cyan-400">5+</h3>
+                            <p class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-medium">Yillik tajriba</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Cards Section -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-white mb-4">Nega aynan bizni tanlashadi?</h2>
+                    <p class="text-slate-400 max-w-xl mx-auto">Har bir loyihamizga alohida e'tibor va innovatsion yondashuv bilan yondashamiz.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-2 group shadow-xl">
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl mb-6 group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">To'liq Responsiv Dizayn</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Barcha turdagi qurilmalarda (Smartfon, Planshet, Kompyuter) birdek mukammal va qulay ko'rinish kafolatlanadi.
+                        </p>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-2 group shadow-xl">
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl mb-6 group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Yuqori Yuklanish Tezligi</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Kodni optimallashtirish orqali veb-saytingiz soniyalar ichida tezkor va uzluksiz yuklanadi.
+                        </p>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 transition-all duration-300 hover:-translate-y-2 group shadow-xl">
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl mb-6 group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">SEO va Xavfsizlik</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Qidiruv tizimlari (Google) uchun moslashtirish va zamonaviy xavfsizlik standartlariga rioya qilish.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 2: ABOUT US -->
+        <section id="page-about" class="page-content">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <!-- Page Title -->
+                <div class="text-center mb-16">
+                    <span class="text-cyan-400 font-semibold text-sm uppercase tracking-widest">Kompaniya haqida</span>
+                    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mt-2 mb-4">Bizning Tajribali Jamoamiz</h1>
+                    <p class="text-slate-400 max-w-2xl mx-auto text-base">Biz raqamli dunyoda bizneslarni rivojlantirishga yordam beradigan tajribali dasturchilar va dizaynerlar jamoasimiz.</p>
+                </div>
+
+                <!-- Story Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+                    <div class="relative">
+                        <div class="aspect-video rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-800 p-8 flex flex-col justify-between overflow-hidden shadow-2xl">
+                            <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-cyan-500/10 rounded-full blur-2xl"></div>
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-2xl">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white mb-2">Bizning Missiyamiz</h3>
+                                <p class="text-slate-400 text-sm leading-relaxed">
+                                    Mijozlarimizga eng zamonaviy, ishonchli va yuqori samaradorlikka ega raqamli mahsulotlarni taqdim etish orqali ularning muvaffaqiyatiga hissa qo'shish.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h2 class="text-3xl font-bold text-white">Raqamli Dunyoda Sifat Standarti</h2>
+                        <p class="text-slate-400 leading-relaxed">
+                            Nexus Studio 2021-yilda tashkil etilgan bo'lib, o'z faoliyati davomida yuzlab muvaffaqiyatli loyihalarni taqdim etib kelmoqda. Biz faqatgina sayt yaratmaymiz, balki mijozning brend falsafasini va maqsadi aks ettiruvchi raqamli tajribani barpo etamiz.
+                        </p>
+                        
+                        <div class="space-y-3 pt-2">
+                            <div class="flex items-center gap-3 text-slate-300">
+                                <i class="fa-solid fa-circle-check text-cyan-400"></i>
+                                <span>Mijoz ehtiyojlariga mos yakka tartibdagi yechimlar</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-300">
+                                <i class="fa-solid fa-circle-check text-cyan-400"></i>
+                                <span>O'z vaqtida va sifatli topshirish kafolati</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-300">
+                                <i class="fa-solid fa-circle-check text-cyan-400"></i>
+                                <span>Loyihadan so'ng doimiy qo'llab-quvvatlash</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Section -->
+                <div class="mt-20">
+                    <h2 class="text-2xl font-bold text-white text-center mb-12">Bizning Mutaxassislar</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center">
+                            <div class="w-24 h-24 rounded-full bg-slate-800 border-2 border-cyan-500 mx-auto mb-4 flex items-center justify-center text-3xl text-slate-400">
+                                <i class="fa-solid fa-user-astronaut"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-white">Alisher Zokirov</h4>
+                            <p class="text-cyan-400 text-xs mt-1">Lead Tech Developer</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center">
+                            <div class="w-24 h-24 rounded-full bg-slate-800 border-2 border-cyan-500 mx-auto mb-4 flex items-center justify-center text-3xl text-slate-400">
+                                <i class="fa-solid fa-user-ninja"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-white">Madina Rahimova</h4>
+                            <p class="text-cyan-400 text-xs mt-1">UI/UX Designer</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center">
+                            <div class="w-24 h-24 rounded-full bg-slate-800 border-2 border-cyan-500 mx-auto mb-4 flex items-center justify-center text-3xl text-slate-400">
+                                <i class="fa-solid fa-user-gear"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-white">Jahongir Aliyev</h4>
+                            <p class="text-cyan-400 text-xs mt-1">Project Manager</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 3: SERVICES & PRICING -->
+        <section id="page-services" class="page-content">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <!-- Page Title -->
+                <div class="text-center mb-16">
+                    <span class="text-cyan-400 font-semibold text-sm uppercase tracking-widest">Xizmat va Tariflar</span>
+                    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mt-2 mb-4">Bizning Tarif Rejalari</h1>
+                    <p class="text-slate-400 max-w-2xl mx-auto text-base">Har qanday hajmdagi biznes uchun mos keladigan optimal xizmat paketlari.</p>
+                </div>
+
+                <!-- Pricing Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+                    <!-- Basic Plan -->
+                    <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-800 px-3 py-1 rounded-full">Start</span>
+                            <h3 class="text-2xl font-bold text-white mt-4">Landing Page</h3>
+                            <p class="text-slate-400 text-xs mt-2">Kichik biznes va maxsus aksiyalar uchun bir sahifali sayt.</p>
+                            <div class="my-6">
+                                <span class="text-4xl font-extrabold text-white">$250</span>
+                                <span class="text-slate-500 text-sm">/ bitta loyiha</span>
+                            </div>
+                            <ul class="space-y-3 text-sm text-slate-300 mb-8">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> 1 Sahifali zamonaviy dizayn</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Mobil qurilmalarga moslashuv</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Telegram botga bildirishnoma</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Boshlang'ich SEO sozlama</li>
+                            </ul>
+                        </div>
+                        <button onclick="switchPage('contact')" class="w-full py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-white font-medium transition-all duration-300">
+                            Tanlash
+                        </button>
+                    </div>
+
+                    <!-- Pro Plan (Featured) -->
+                    <div class="rounded-3xl bg-slate-900 border-2 border-cyan-500 p-8 flex flex-col justify-between relative shadow-2xl shadow-cyan-500/10 scale-105">
+                        <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-md">
+                            OMMABOP
+                        </span>
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full">Biznes</span>
+                            <h3 class="text-2xl font-bold text-white mt-4">Korporativ Sayt</h3>
+                            <p class="text-slate-400 text-xs mt-2">Kompaniya xizmatlarini to'liq taqdim etuvchi ko'p sahifali sayt.</p>
+                            <div class="my-6">
+                                <span class="text-4xl font-extrabold text-white">$600</span>
+                                <span class="text-slate-500 text-sm">/ bitta loyiha</span>
+                            </div>
+                            <ul class="space-y-3 text-sm text-slate-300 mb-8">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> 5 tagacha dinamik sahifa</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Admin Panel (CMS)</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Ko'p tilli qo'llab-quvvatlash</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Tezkor yuklanish va Animatsiyalar</li>
+                            </ul>
+                        </div>
+                        <button onclick="switchPage('contact')" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all duration-300">
+                            Tanlash
+                        </button>
+                    </div>
+
+                    <!-- Enterprise Plan -->
+                    <div class="rounded-3xl bg-slate-900 border border-slate-800 p-8 flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-800 px-3 py-1 rounded-full">E-Commerce</span>
+                            <h3 class="text-2xl font-bold text-white mt-4">Internet Do'kon</h3>
+                            <p class="text-slate-400 text-xs mt-2">Onlayn savdo va to'lov tizimlari integratsiyasi bor sayt.</p>
+                            <div class="my-6">
+                                <span class="text-4xl font-extrabold text-white">$1200</span>
+                                <span class="text-slate-500 text-sm">/ bitta loyiha</span>
+                            </div>
+                            <ul class="space-y-3 text-sm text-slate-300 mb-8">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Onlayn to'lov tizimlari (Click/Payme)</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Cheksiz mahsulotlar katalogi</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> Shaxsiy kabinet va savat</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyan-400"></i> 1 Yillik bepul xizmat ko'rsatish</li>
+                            </ul>
+                        </div>
+                        <button onclick="switchPage('contact')" class="w-full py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-white font-medium transition-all duration-300">
+                            Tanlash
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 4: CONTACT -->
+        <section id="page-contact" class="page-content">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <!-- Page Title -->
+                <div class="text-center mb-16">
+                    <span class="text-cyan-400 font-semibold text-sm uppercase tracking-widest">Bog'lanish</span>
+                    <h1 class="text-4xl sm:text-5xl font-extrabold text-white mt-2 mb-4">Biz Bilan Aloqaga Chiqing</h1>
+                    <p class="text-slate-400 max-w-2xl mx-auto text-base">Savollaringiz bormi yoki loyihani boshlamoqchimisiz? Formani to'ldiring, biz sizga tezda javob beramiz.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Contact Info Cards -->
+                    <div class="space-y-4">
+                        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold mb-1">Manzil</h4>
+                                <p class="text-slate-400 text-sm">Toshkent shahri, Yunusobod tumani, IT Park majmuasi</p>
+                            </div>
+                        </div>
+
+                        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold mb-1">Telefon</h4>
+                                <p class="text-slate-400 text-sm">+998 (90) 123-45-67</p>
+                                <p class="text-slate-400 text-sm">+998 (71) 200-00-00</p>
+                            </div>
+                        </div>
+
+                        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold mb-1">E-pochtamiz</h4>
+                                <p class="text-slate-400 text-sm">info@nexusstudio.uz</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div class="lg:col-span-2 p-8 rounded-3xl bg-slate-900 border border-slate-800 relative">
+                        <!-- Custom Alert Container -->
+                        <div id="form-alert" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
+
+                        <form id="contactForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-2">Ismingiz</label>
+                                    <input type="text" required placeholder="Masalan: Jamshid" class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-2">Telefon Raqamingiz</label>
+                                    <input type="tel" required placeholder="+998 90 123 45 67" class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500 transition-colors">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-2">Xizmat Turini Tanlang</label>
+                                <select class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 focus:outline-none focus:border-cyan-500 transition-colors">
+                                    <option>Landing Page Yaratish</option>
+                                    <option>Korporativ Veb-Sayt</option>
+                                    <option>Internet Do'kon</option>
+                                    <option>Boshqa Boshqa Xizmatlar</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-2">Xabar va Qo'shimcha Izoh</label>
+                                <textarea rows="4" required placeholder="Loyiha haqida qisqacha ma'lumot bering..." class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-cyan-500 transition-colors resize-none"></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full py-4 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 transition-all duration-300">
+                                Xabarni Yuborish
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-12 text-slate-400 text-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div class="space-y-4 md:col-span-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-white font-black text-sm">N</div>
+                        <span class="text-lg font-bold text-white">NEXUS.studio</span>
+                    </div>
+                    <p class="text-slate-500 text-xs leading-relaxed">
+                        Zamonaviy texnologiyalar yordamida biznesingiz va brendingizni raqamli rivojlantirish markazi.
+                    </p>
+                </div>
+
+                <div>
+                    <h5 class="text-white font-semibold mb-4">Navigatsiya</h5>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="#" onclick="switchPage('home')" class="hover:text-cyan-400 transition-colors">Bosh Sahifa</a></li>
+                        <li><a href="#" onclick="switchPage('about')" class="hover:text-cyan-400 transition-colors">Biz Haqimizda</a></li>
+                        <li><a href="#" onclick="switchPage('services')" class="hover:text-cyan-400 transition-colors">Xizmatlar</a></li>
+                        <li><a href="#" onclick="switchPage('contact')" class="hover:text-cyan-400 transition-colors">Aloqa</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-white font-semibold mb-4">Xizmatlar</h5>
+                    <ul class="space-y-2 text-xs text-slate-500">
+                        <li>Web Development</li>
+                        <li>UI/UX Web Design</li>
+                        <li>E-Commerce Solutions</li>
+                        <li>SEO Optimization</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h5 class="text-white font-semibold mb-4">Ijtimoiy Tarmoqlar</h5>
+                    <div class="flex space-x-3">
+                        <a href="#" class="w-9 h-9 rounded-full bg-slate-900 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300">
+                            <i class="fa-brands fa-telegram"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-slate-900 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 rounded-full bg-slate-900 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all duration-300">
+                            <i class="fa-brands fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-900 pt-6 text-center text-xs text-slate-600">
+                &copy; 2026 NEXUS Studio. Barcha huquqlar himoyalangan.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT FOR DYNAMIC TAB SWITCHING -->
+    <script>
+        // Function to switch visible pages with smooth fade effects
+        function switchPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Show target page
+            const targetPage = document.getElementById('page-' + pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+
+            // Update navbar buttons styling
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.remove('text-white', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-600', 'shadow-md');
+                btn.classList.add('text-slate-400');
+            });
+
+            const activeBtn = document.getElementById('nav-' + pageId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400');
+                activeBtn.classList.add('text-white', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-600', 'shadow-md');
+            }
+
+            // Scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Mobile Menu Toggle Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            toggleMobileMenu();
+        });
+
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Contact Form Submission Handler (Custom notification instead of alert)
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const alertBox = document.getElementById('form-alert');
+            
+            alertBox.classList.remove('hidden', 'bg-red-500/20', 'text-red-400', 'border-red-500/30');
+            alertBox.classList.add('bg-cyan-500/20', 'text-cyan-300', 'border', 'border-cyan-500/30');
+            alertBox.innerHTML = '<i class="fa-solid fa-circle-check mr-2"></i> Rahmat! Xabaringiz muvaffaqiyatli yuborildi. Tez orada siz bilan bog\'lanamiz.';
+
+            // Reset form
+            document.getElementById('contactForm').reset();
+
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

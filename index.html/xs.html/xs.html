@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odin's Realm: 2-Player Battle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Rajdhani:wght@500;700&display=swap');
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #080a0f;
+            color: #f1f5f9;
+            user-select: none;
+            touch-action: none;
+            overflow: hidden;
+        }
+
+        .cinzel-font {
+            font-family: 'Cinzel', serif;
+        }
+
+        .nordic-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(217, 119, 6, 0.3);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .glow-gold { text-shadow: 0 0 12px rgba(245, 158, 11, 0.8); }
+        .glow-cyan { text-shadow: 0 0 12px rgba(6, 182, 212, 0.8); }
+        .glow-purple { text-shadow: 0 0 12px rgba(168, 85, 247, 0.8); }
+
+        canvas {
+            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(217, 119, 6, 0.15);
+        }
+
+        .key-badge {
+            background: #1e293b;
+            border: 1px solid #475569;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #f59e0b;
+            font-family: 'Cinzel', serif;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 md:p-4">
+
+    <div class="w-full max-w-6xl flex flex-col items-center gap-3">
+        <!-- Header & Health Bars -->
+        <header class="w-full nordic-card p-4 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border border-amber-600/30">
+            
+            <!-- Player 1 (Thor) -->
+            <div class="flex items-center gap-3 bg-slate-900/80 p-3 rounded-xl border border-cyan-500/40 w-full md:w-1/3">
+                <div class="w-5 h-5 rounded-full bg-cyan-400 shadow-[0_0_12px_#22d3ee]"></div>
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs font-bold text-cyan-400 cinzel-font">
+                        <span>THOR (GOD OF THUNDER)</span>
+                        <span id="p1-score">SCORE: 0</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-3 mt-1 overflow-hidden border border-cyan-900">
+                        <div id="p1-hp-bar" class="bg-gradient-to-r from-cyan-500 to-blue-600 h-3 transition-all duration-200" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Status & Timer -->
+            <div class="flex flex-col items-center text-center">
+                <h1 class="text-xl md:text-2xl font-black tracking-widest text-amber-400 cinzel-font glow-gold">ODIN'S ARENA</h1>
+                <div id="timer" class="text-2xl font-black title-font text-slate-200 mt-1">60</div>
+            </div>
+
+            <!-- Player 2 (Odin) -->
+            <div class="flex items-center gap-3 bg-slate-900/80 p-3 rounded-xl border border-purple-500/40 w-full md:w-1/3">
+                <div class="w-5 h-5 rounded-full bg-purple-500 shadow-[0_0_12px_#a855f7]"></div>
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs font-bold text-purple-400 cinzel-font">
+                        <span>ODIN (ALLFATHER)</span>
+                        <span id="p2-score">SCORE: 0</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-3 mt-1 overflow-hidden border border-purple-900">
+                        <div id="p2-hp-bar" class="bg-gradient-to-r from-purple-500 to-indigo-600 h-3 transition-all duration-200" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Game Canvas Container -->
+        <div class="relative w-full flex justify-center items-center">
+            <canvas id="gameCanvas" class="w-full h-auto rounded-2xl border border-amber-500/20"></canvas>
+
+            <!-- Winner Modal -->
+            <div id="modal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-2xl hidden flex flex-col items-center justify-center p-6 text-center z-20 border border-amber-500/40">
+                <h2 id="winner-text" class="text-3xl md:text-5xl font-black cinzel-font mb-3 glow-gold">THOR VICTORIOUS!</h2>
+                <p id="winner-sub" class="text-slate-300 text-sm md:text-base mb-6 font-medium">The Gods have decided the fate of Valhalla.</p>
+                <button id="modal-reset-btn" class="px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-sm cinzel-font rounded-xl transition-all shadow-xl shadow-amber-500/20 transform active:scale-95">
+                    NEXT ROUND
+                </button>
+            </div>
+        </div>
+
+        <footer class="w-full nordic-card p-3 rounded-2xl border border-amber-600/30 text-xs text-slate-300 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-cyan-500/20 flex flex-col gap-1">
+                <span class="font-bold text-cyan-400 cinzel-font flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> PLAYER 1 (THOR)
+                </span>
+                <div class="text-[11px] text-slate-300">
+                    Move: <span class="key-badge">W</span><span class="key-badge">A</span><span class="key-badge">S</span><span class="key-badge">D</span> | 
+                    Attack: <span class="key-badge">SPACE</span> (Mjolnir Strike) | 
+                    Special: <span class="key-badge">F</span> (Lightning Wave)
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-purple-500/20 flex flex-col gap-1">
+                <span class="font-bold text-purple-400 cinzel-font flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> PLAYER 2 (ODIN)
+                </span>
+                <div class="text-[11px] text-slate-300">
+                    Move: <span class="key-badge">ARROWS</span> | 
+                    Attack: <span class="key-badge">ENTER</span> (Gungnir Spear) | 
+                    Special: <span class="key-badge">SHIFT</span> (Rune Blast)
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'hit') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'special') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(277, now + 0.1);
+                osc.frequency.setValueAtTime(329, now + 0.2);
+                osc.frequency.setValueAtTime(440, now + 0.3);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 960;
+        canvas.height = 540;
+
+        const keys = {};
+        let screenShake = 0;
+        let particles = [];
+        let projectiles = [];
+        let gameOver = false;
+        let p1Score = 0;
+        let p2Score = 0;
+        let timerVal = 60;
+        let timerInterval;
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (['Space', 'Enter', 'ShiftRight', 'ShiftLeft', 'KeyF', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+
+        function triggerShake(intensity) {
+            screenShake = intensity;
+        }
+
+        function createParticles(x, y, color, count = 15, size = 4) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    color,
+                    radius: Math.random() * size + 2,
+                    life: 25
+                });
+            }
+        }
+
+        class Fighter {
+            constructor(x, y, color, accentColor, isPlayer1) {
+                this.x = x;
+                this.y = y;
+                this.radius = 22;
+                this.color = color;
+                this.accentColor = accentColor;
+                this.isPlayer1 = isPlayer1;
+                this.speed = 4.5;
+                this.hp = 100;
+                this.facing = isPlayer1 ? 0 : Math.PI;
+                this.attackCd = 0;
+                this.specialCd = 0;
+            }
+
+            reset(x, y) {
+                this.x = x;
+                this.y = y;
+                this.hp = 100;
+                this.facing = this.isPlayer1 ? 0 : Math.PI;
+                this.attackCd = 0;
+                this.specialCd = 0;
+            }
+
+            update() {
+                if (this.attackCd > 0) this.attackCd--;
+                if (this.specialCd > 0) this.specialCd--;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Aura Glow
+                ctx.shadowColor = this.accentColor;
+                ctx.shadowBlur = 15;
+
+                // Outer Body
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Inner Rune Symbol / Crest
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Direction Pointer
+                ctx.rotate(this.facing);
+                ctx.fillStyle = this.accentColor;
+                ctx.fillRect(this.radius * 0.5, -3, 14, 6);
+
+                ctx.restore();
+            }
+
+            move(dx, dy) {
+                if (dx !== 0 || dy !== 0) {
+                    this.facing = Math.atan2(dy, dx);
+                }
+                const nx = this.x + dx * this.speed;
+                const ny = this.y + dy * this.speed;
+
+                if (nx > this.radius && nx < canvas.width - this.radius) this.x = nx;
+                if (ny > this.radius && ny < canvas.height - this.radius) this.y = ny;
+
+                // Movement Trail Particles
+                if (Math.random() < 0.3) {
+                    createParticles(this.x, this.y, this.accentColor, 1, 2);
+                }
+            }
+
+            basicAttack(opponent) {
+                if (this.attackCd > 0) return;
+                this.attackCd = 20;
+
+                const attackX = this.x + Math.cos(this.facing) * 35;
+                const attackY = this.y + Math.sin(this.facing) * 35;
+
+                createParticles(attackX, attackY, this.accentColor, 10, 3);
+                playSound('hit');
+
+                const dist = Math.hypot(attackX - opponent.x, attackY - opponent.y);
+                if (dist < opponent.radius + 20) {
+                    opponent.hp -= 12;
+                    triggerShake(8);
+                    createParticles(opponent.x, opponent.y, '#f59e0b', 20, 5);
+                }
+            }
+
+            specialAttack() {
+                if (this.specialCd > 0) return;
+                this.specialCd = 90; // Cooldown
+
+                projectiles.push({
+                    x: this.x + Math.cos(this.facing) * 25,
+                    y: this.y + Math.sin(this.facing) * 25,
+                    vx: Math.cos(this.facing) * 7,
+                    vy: Math.sin(this.facing) * 7,
+                    owner: this,
+                    color: this.accentColor,
+                    radius: this.isPlayer1 ? 12 : 10
+                });
+
+                playSound('special');
+                triggerShake(5);
+            }
+        }
+
+        // Instantiate Players
+        // THOR (P1) vs ODIN (P2)
+        const p1 = new Fighter(150, canvas.height / 2, '#0284c7', '#38bdf8', true);
+        const p2 = new Fighter(canvas.width - 150, canvas.height / 2, '#7e22ce', '#c084fc', false);
+
+        function processInput() {
+            if (gameOver) return;
+
+            // P1 (THOR) - WASD Controls
+            let p1dx = 0, p1dy = 0;
+            if (keys['KeyW']) p1dy -= 1;
+            if (keys['KeyS']) p1dy += 1;
+            if (keys['KeyA']) p1dx -= 1;
+            if (keys['KeyD']) p1dx += 1;
+            p1.move(p1dx, p1dy);
+
+            if (keys['Space']) p1.basicAttack(p2);
+            if (keys['KeyF']) p1.specialAttack();
+
+            // P2 (ODIN) - Arrow Keys
+            let p2dx = 0, p2dy = 0;
+            if (keys['ArrowUp']) p2dy -= 1;
+            if (keys['ArrowDown']) p2dy += 1;
+            if (keys['ArrowLeft']) p2dx -= 1;
+            if (keys['ArrowRight']) p2dx += 1;
+            p2.move(p2dx, p2dy);
+
+            if (keys['Enter']) p2.basicAttack(p1);
+            if (keys['ShiftRight'] || keys['ShiftLeft']) p2.specialAttack();
+        }
+
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                proj.x += proj.vx;
+                proj.y += proj.vy;
+
+                createParticles(proj.x, proj.y, proj.color, 1, 2);
+
+                // Check bounds
+                if (proj.x < 0 || proj.x > canvas.width || proj.y < 0 || proj.y > canvas.height) {
+                    projectiles.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with opponent
+                const target = proj.owner === p1 ? p2 : p1;
+                if (Math.hypot(proj.x - target.x, proj.y - target.y) < target.radius + proj.radius) {
+                    target.hp -= 22;
+                    triggerShake(12);
+                    createParticles(target.x, target.y, proj.color, 25, 6);
+                    playSound('hit');
+                    projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('p1-hp-bar').style.width = `${Math.max(0, p1.hp)}%`;
+            document.getElementById('p2-hp-bar').style.width = `${Math.max(0, p2.hp)}%`;
+            document.getElementById('p1-score').innerText = `SCORE: ${p1Score}`;
+            document.getElementById('p2-score').innerText = `SCORE: ${p2Score}`;
+        }
+
+        function checkWin() {
+            if (gameOver) return;
+
+            if (p1.hp <= 0 || p2.hp <= 0 || timerVal <= 0) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                playSound('win');
+
+                const modal = document.getElementById('modal');
+                const winnerText = document.getElementById('winner-text');
+                const winnerSub = document.getElementById('winner-sub');
+
+                if (p1.hp > p2.hp) {
+                    p1Score++;
+                    winnerText.innerText = 'THOR VICTORIOUS!';
+                    winnerText.className = 'text-3xl md:text-5xl font-black cinzel-font mb-3 text-cyan-400 glow-cyan animate-bounce';
+                    winnerSub.innerText = 'The God of Thunder strikes down his opponent with Mjolnir!';
+                } else if (p2.hp > p1.hp) {
+                    p2Score++;
+                    winnerText.innerText = 'ODIN VICTORIOUS!';
+                    winnerText.className = 'text-3xl md:text-5xl font-black cinzel-font mb-3 text-purple-400 glow-purple animate-bounce';
+                    winnerSub.innerText = 'The Allfather claims glory in the Halls of Valhalla!';
+                } else {
+                    winnerText.innerText = 'DRAW OF THE GODS!';
+                    winnerText.className = 'text-3xl md:text-5xl font-black cinzel-font mb-3 text-amber-400 glow-gold animate-bounce';
+                    winnerSub.innerText = 'Both warriors fought with equal fury!';
+                }
+
+                updateUI();
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function drawArena() {
+            // Nordic Runes / Center Ring
+            ctx.save();
+            ctx.strokeStyle = 'rgba(217, 119, 6, 0.2)';
+            ctx.lineWidth = 3;
+
+            // Center Rune Ring
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 120, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 140, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Grid Lines
+            ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 60) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 60) {
+                ctx.beginPath();
+                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        function startTimer() {
+            timerVal = 60;
+            document.getElementById('timer').innerText = timerVal;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!gameOver) {
+                    timerVal--;
+                    document.getElementById('timer').innerText = timerVal;
+                    if (timerVal <= 0) checkWin();
+                }
+            }, 1000);
+        }
+
+        function resetRound() {
+            p1.reset(150, canvas.height / 2);
+            p2.reset(canvas.width - 150, canvas.height / 2);
+            projectiles = [];
+            particles = [];
+            gameOver = false;
+            document.getElementById('modal').classList.add('hidden');
+            updateUI();
+            startTimer();
+        }
+
+        document.getElementById('modal-reset-btn').addEventListener('click', resetRound);
+
+        function gameLoop() {
+            ctx.save();
+
+            // Screen Shake Effect
+            if (screenShake > 0) {
+                const sx = (Math.random() - 0.5) * screenShake;
+                const sy = (Math.random() - 0.5) * screenShake;
+                ctx.translate(sx, sy);
+                screenShake *= 0.85;
+                if (screenShake < 0.5) screenShake = 0;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawArena();
+
+            processInput();
+            p1.update();
+            p2.update();
+
+            updateProjectiles();
+            updateParticles();
+
+            // Draw Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Projectiles
+            projectiles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Fighters
+            p1.draw();
+            p2.draw();
+
+            ctx.restore();
+
+            updateUI();
+            checkWin();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function() {
+            resetRound();
+            gameLoop();
+        };
+    </script>
+</body>
+</html>

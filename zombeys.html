@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Zombie Arena 2P</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    overflow:hidden;
+    background:#050709;
+    color:white;
+    font-family:Arial,sans-serif;
+}
+
+canvas{
+    display:block;
+    background:#070b0d;
+}
+
+/* ================= SCREENS ================= */
+
+.screen{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:
+        radial-gradient(circle at center,#18261b,#030504 75%);
+}
+
+.screen h1{
+    font-size:clamp(45px,8vw,80px);
+    color:#62ff76;
+    text-shadow:
+        0 0 10px #00ff44,
+        0 0 40px #00ff44;
+    margin-bottom:10px;
+}
+
+.screen p{
+    color:#8c9890;
+    margin-bottom:30px;
+}
+
+.menu-buttons{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.bigBtn{
+    min-width:180px;
+    padding:17px 30px;
+    border:2px solid #54ff70;
+    border-radius:13px;
+    background:linear-gradient(135deg,#159b3f,#08732d);
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.25s;
+    box-shadow:0 0 25px rgba(0,255,70,.2);
+}
+
+.bigBtn:hover{
+    transform:translateY(-4px) scale(1.04);
+    box-shadow:0 0 40px rgba(0,255,70,.5);
+}
+
+.backBtn{
+    margin-top:25px;
+    padding:11px 30px;
+    border:1px solid #777;
+    border-radius:10px;
+    background:transparent;
+    color:#aaa;
+    cursor:pointer;
+}
+
+/* ================= UI ================= */
+
+#ui{
+    display:none;
+    position:fixed;
+    top:15px;
+    left:15px;
+    z-index:20;
+    min-width:280px;
+    pointer-events:none;
+}
+
+.playerInfo{
+    margin-bottom:12px;
+}
+
+.playerName{
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:4px;
+}
+
+.hpBar{
+    width:250px;
+    height:18px;
+    border:2px solid white;
+    border-radius:20px;
+    overflow:hidden;
+    background:#202020;
+}
+
+.hp{
+    width:100%;
+    height:100%;
+    transition:.15s;
+}
+
+#hp1{
+    background:linear-gradient(90deg,#00ff62,#00c8ff);
+}
+
+#hp2{
+    background:linear-gradient(90deg,#ff3e68,#ffb52e);
+}
+
+.infoLine{
+    margin-top:6px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+#coinsUI{
+    color:#ffd43b;
+}
+
+#levelUI{
+    color:#63ff77;
+}
+
+#weaponUI{
+    color:#55dfff;
+}
+
+#speedUI{
+    color:#ffb347;
+}
+
+#zombieUI{
+    color:#ff5c7a;
+}
+
+/* ================= HOME ================= */
+
+#homeBtn{
+    display:none;
+    position:fixed;
+    right:20px;
+    top:20px;
+    z-index:30;
+    width:58px;
+    height:58px;
+    border-radius:17px;
+    border:2px solid white;
+    background:rgba(10,20,13,.9);
+    color:white;
+    font-size:28px;
+    cursor:pointer;
+}
+
+/* ================= SHOP ================= */
+
+#shop{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:90;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:
+        radial-gradient(circle,#18281b,#030504 78%);
+}
+
+#shop h1{
+    color:#63ff77;
+    font-size:45px;
+    margin-bottom:8px;
+}
+
+#shopCoins{
+    color:#ffd43b;
+    font-size:20px;
+    margin-bottom:25px;
+}
+
+.shopGrid{
+    width:min(1100px,94%);
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+}
+
+.upgrade{
+    padding:22px 16px;
+    text-align:center;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.13);
+    border-radius:20px;
+    transition:.25s;
+}
+
+.upgrade:hover{
+    transform:translateY(-5px);
+    border-color:#55ff72;
+    box-shadow:0 0 30px rgba(0,255,70,.15);
+}
+
+.icon{
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.upgrade h2{
+    font-size:17px;
+    margin-bottom:9px;
+}
+
+.upgrade p{
+    min-height:58px;
+    color:#909990;
+    font-size:12px;
+    line-height:1.5;
+}
+
+.levelText{
+    color:#63ff77;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+.buy{
+    width:100%;
+    margin-top:14px;
+    padding:11px;
+    border:0;
+    border-radius:10px;
+    background:#159447;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.buy:disabled{
+    background:#303432;
+    color:#707570;
+    cursor:not-allowed;
+}
+
+.closeShop{
+    margin-top:20px;
+    padding:12px 35px;
+    border:1px solid white;
+    border-radius:10px;
+    background:transparent;
+    color:white;
+    cursor:pointer;
+}
+
+/* ================= GAME OVER ================= */
+
+#gameOver{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:150;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:rgba(0,0,0,.88);
+}
+
+#gameOver h1{
+    color:#ff3150;
+    font-size:60px;
+    text-shadow:0 0 30px red;
+}
+
+#finalText{
+    margin:15px 0 25px;
+    color:#bbb;
+    text-align:center;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:850px){
+
+    .shopGrid{
+        grid-template-columns:repeat(2,1fr);
+        max-height:70vh;
+        overflow:auto;
+    }
+
+}
+
+@media(max-width:600px){
+
+    .shopGrid{
+        grid-template-columns:1fr;
+    }
+
+    .screen h1{
+        font-size:42px;
+    }
+
+    .hpBar{
+        width:190px;
+    }
+
+    #ui{
+        min-width:210px;
+    }
+
+    .playerName{
+        font-size:11px;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<!-- =================================================
+     START SCREEN
+================================================= -->
+
+<div id="startScreen" class="screen">
+
+    <h1>🧟 ZOMBIE ARENA</h1>
+
+    <p>Survive. Upgrade. Destroy.</p>
+
+    <div class="menu-buttons">
+
+        <button
+            id="enterBtn"
+            class="bigBtn"
+            type="button">
+            🎮 KIRISH
+        </button>
+
+    </div>
+
+</div>
+
+<!-- =================================================
+     MODE SCREEN
+================================================= -->
+
+<div id="modeScreen" class="screen" style="display:none">
+
+    <h1 style="font-size:50px">
+        O‘YIN REJIMI
+    </h1>
+
+    <p>Nechta o‘yinchi bo‘ladi?</p>
+
+    <div class="menu-buttons">
+
+        <button
+            id="onePlayerBtn"
+            class="bigBtn"
+            type="button">
+            👤 1 KISHILIK
+        </button>
+
+        <button
+            id="twoPlayerBtn"
+            class="bigBtn"
+            type="button">
+            👥 2 KISHILIK
+        </button>
+
+    </div>
+
+    <button
+        id="backBtn"
+        class="backBtn"
+        type="button">
+        ORQAGA
+    </button>
+
+</div>
+
+<!-- =================================================
+     GAME UI
+================================================= -->
+
+<div id="ui">
+
+    <div class="playerInfo">
+
+        <div class="playerName">
+            🟢 O‘YINCHI 1 — WASD + MOUSE + CLICK
+        </div>
+
+        <div class="hpBar">
+            <div id="hp1" class="hp"></div>
+        </div>
+
+    </div>
+
+    <div
+        id="player2UI"
+        class="playerInfo"
+        style="display:none">
+
+        <div class="playerName">
+            🔴 O‘YINCHI 2 — IJKL + ARROWS + SPACE
+        </div>
+
+        <div class="hpBar">
+            <div id="hp2" class="hp"></div>
+        </div>
+
+    </div>
+
+    <div class="infoLine">
+        🪙 TANGALAR:
+        <span id="coinsUI">0</span>
+    </div>
+
+    <div class="infoLine">
+        ⭐ LEVEL:
+        <span id="levelUI">1</span>
+    </div>
+
+    <div class="infoLine">
+        🔫 OTGICH:
+        <span id="weaponUI">1/5</span>
+    </div>
+
+    <div class="infoLine">
+        ⚡ TEZLIK:
+        <span id="speedUI">15</span>
+    </div>
+
+    <div class="infoLine">
+        🧟 ZOMBILAR:
+        <span id="zombieUI">0</span>
+    </div>
+
+</div>
+
+<!-- =================================================
+     SHOP BUTTON
+================================================= -->
+
+<button
+    id="homeBtn"
+    type="button">
+    🏠
+</button>
+
+<!-- =================================================
+     SHOP
+================================================= -->
+
+<div id="shop">
+
+    <h1>🏠 QUROL UYI</h1>
+
+    <div id="shopCoins">
+        🪙
+        <span id="shopCoinNumber">0</span>
+    </div>
+
+    <div class="shopGrid">
+
+        <!-- WEAPON -->
+
+        <div class="upgrade">
+
+            <div class="icon">🔫</div>
+
+            <h2>OTGICH</h2>
+
+            <p>
+                Otgich darajasini oshiradi.
+                Maksimum 5 level.
+            </p>
+
+            <div class="levelText">
+                LEVEL:
+                <span id="weaponLevelText">1</span>/5
+            </div>
+
+            <button
+                id="weaponBuy"
+                class="buy"
+                type="button">
+            </button>
+
+        </div>
+
+        <!-- SHOTS -->
+
+        <div class="upgrade">
+
+            <div class="icon">💥</div>
+
+            <h2>O‘Q SONI</h2>
+
+            <p>
+                Har bir otishda chiqadigan
+                o‘qlar sonini oshiradi.
+                Maksimum 5 ta.
+            </p>
+
+            <div class="levelText">
+                O‘Q:
+                <span id="shotsLevelText">1</span>/5
+            </div>
+
+            <button
+                id="shotsBuy"
+                class="buy"
+                type="button">
+            </button>
+
+        </div>
+
+        <!-- FIRE RATE -->
+
+        <div class="upgrade">
+
+            <div class="icon">⚡</div>
+
+            <h2>OTISH TEZLIGI</h2>
+
+            <p>
+                Otish tezligini oshiradi.
+                15 dan 150 gacha.
+            </p>
+
+            <div class="levelText">
+                TEZLIK:
+                <span id="fireRateLevelText">15</span>
+            </div>
+
+            <button
+                id="fireRateBuy"
+                class="buy"
+                type="button">
+            </button>
+
+        </div>
+
+        <!-- DAMAGE -->
+
+        <div class="upgrade">
+
+            <div class="icon">☠️</div>
+
+            <h2>O‘Q KUCHI</h2>
+
+            <p>
+                Har bir o‘q zararini oshiradi.
+            </p>
+
+            <div class="levelText">
+                DAMAGE:
+                <span id="damageLevelText">10</span>
+            </div>
+
+            <button
+                id="damageBuy"
+                class="buy"
+                type="button">
+            </button>
+
+        </div>
+
+    </div>
+
+    <button
+        id="closeShop"
+        class="closeShop"
+        type="button">
+        🎮 O‘YINGA QAYTISH
+    </button>
+
+</div>
+
+<!-- =================================================
+     GAME OVER
+================================================= -->
+
+<div id="gameOver">
+
+    <h1>GAME OVER</h1>
+
+    <div id="finalText"></div>
+
+    <button
+        id="restartBtn"
+        class="bigBtn"
+        type="button">
+        QAYTA O‘YNASH
+    </button>
+
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext("2d");
+
+const startScreen =
+    document.getElementById("startScreen");
+
+const modeScreen =
+    document.getElementById("modeScreen");
+
+const ui =
+    document.getElementById("ui");
+
+const player2UI =
+    document.getElementById("player2UI");
+
+const shop =
+    document.getElementById("shop");
+
+const gameOverScreen =
+    document.getElementById("gameOver");
+
+const homeBtn =
+    document.getElementById("homeBtn");
+
+/* =====================================================
+   RESIZE
+===================================================== */
+
+function resize(){
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+}
+
+resize();
+
+window.addEventListener(
+    "resize",
+    resize
+);
+
+/* =====================================================
+   GAME VARIABLES
+===================================================== */
+
+let mode = 1;
+
+let started = false;
+let paused = false;
+let stopped = false;
+
+let coins = 0;
+
+let level = 1;
+let kills = 0;
+let levelKills = 0;
+
+let weaponLevel = 1;
+const maxWeaponLevel = 5;
+
+let shots = 1;
+const maxShots = 5;
+
+let fireRate = 15;
+const maxFireRate = 150;
+
+let damage = 10;
+
+const maxHP = 100;
+
+let spawnTimer = 0;
+
+let bullets = [];
+let zombies = [];
+let drops = [];
+
+let lastShot1 = 0;
+let lastShot2 = 0;
+
+/* =====================================================
+   PLAYERS
+===================================================== */
+
+const p1 = {
+
+    x:250,
+    y:canvas.height / 2,
+
+    r:22,
+
+    speed:5,
+
+    hp:100,
+
+    angle:0,
+
+    color:"#36e86b"
+
+};
+
+const p2 = {
+
+    x:canvas.width - 250,
+    y:canvas.height / 2,
+
+    r:22,
+
+    speed:5,
+
+    hp:100,
+
+    angle:Math.PI,
+
+    color:"#ff3e68"
+
+};
+
+/* =====================================================
+   KEYBOARD
+===================================================== */
+
+const keys = {};
+
+window.addEventListener(
+    "keydown",
+    function(e){
+
+        keys[e.key.toLowerCase()] = true;
+
+        if(e.code === "Space"){
+
+            e.preventDefault();
+
+            keys[" "] = true;
+
+        }
+
+        if(
+            [
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight"
+            ].includes(e.key)
+        ){
+
+            e.preventDefault();
+
+        }
+
+    }
+);
+
+window.addEventListener(
+    "keyup",
+    function(e){
+
+        keys[e.key.toLowerCase()] = false;
+
+        if(e.code === "Space"){
+
+            e.preventDefault();
+
+            keys[" "] = false;
+
+        }
+
+    }
+);
+
+/* =====================================================
+   MOUSE
+===================================================== */
+
+const mouse = {
+
+    x:0,
+    y:0,
+    down:false
+
+};
+
+window.addEventListener(
+    "mousemove",
+    function(e){
+
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+
+    }
+);
+
+window.addEventListener(
+    "mousedown",
+    function(e){
+
+        if(e.button === 0){
+
+            mouse.down = true;
+
+        }
+
+    }
+);
+
+window.addEventListener(
+    "mouseup",
+    function(e){
+
+        if(e.button === 0){
+
+            mouse.down = false;
+
+        }
+
+    }
+);
+
+/* =====================================================
+   MENU
+===================================================== */
+
+document
+    .getElementById("enterBtn")
+    .addEventListener(
+        "click",
+        function(){
+
+            startScreen.style.display = "none";
+            modeScreen.style.display = "flex";
+
+        }
+    );
+
+document
+    .getElementById("backBtn")
+    .addEventListener(
+        "click",
+        function(){
+
+            modeScreen.style.display = "none";
+            startScreen.style.display = "flex";
+
+        }
+    );
+
+document
+    .getElementById("onePlayerBtn")
+    .addEventListener(
+        "click",
+        function(){
+
+            startGame(1);
+
+        }
+    );
+
+document
+    .getElementById("twoPlayerBtn")
+    .addEventListener(
+        "click",
+        function(){
+
+            startGame(2);
+
+        }
+    );
+
+/* =====================================================
+   START GAME
+===================================================== */
+
+function startGame(selectedMode){
+
+    mode = selectedMode;
+
+    started = true;
+    paused = false;
+    stopped = false;
+
+    coins = 0;
+
+    level = 1;
+    kills = 0;
+    levelKills = 0;
+
+    weaponLevel = 1;
+    shots = 1;
+    fireRate = 15;
+    damage = 10;
+
+    spawnTimer = 0;
+
+    bullets = [];
+    zombies = [];
+    drops = [];
+
+    lastShot1 = 0;
+    lastShot2 = 0;
+
+    /* PLAYER 1 */
+
+    p1.x = 250;
+    p1.y = canvas.height / 2;
+    p1.hp = maxHP;
+    p1.angle = 0;
+
+    /* PLAYER 2 */
+
+    p2.x = canvas.width - 250;
+    p2.y = canvas.height / 2;
+    p2.hp = maxHP;
+    p2.angle = Math.PI;
+
+    modeScreen.style.display = "none";
+
+    ui.style.display = "block";
+
+    homeBtn.style.display = "block";
+
+    if(mode === 2){
+
+        player2UI.style.display = "block";
+
+    }else{
+
+        player2UI.style.display = "none";
+
+    }
+
+    updateUI();
+
+    requestAnimationFrame(loop);
+
+}
+
+/* =====================================================
+   PLAYER 1 UPDATE
+===================================================== */
+
+function updatePlayer1(){
+
+    let dx = 0;
+    let dy = 0;
+
+    if(keys["w"]) dy -= 1;
+    if(keys["s"]) dy += 1;
+    if(keys["a"]) dx -= 1;
+    if(keys["d"]) dx += 1;
+
+    if(dx !== 0 || dy !== 0){
+
+        const len =
+            Math.hypot(dx,dy);
+
+        dx /= len;
+        dy /= len;
+
+        p1.x += dx * p1.speed;
+        p1.y += dy * p1.speed;
+
+    }
+
+    clampPlayer(p1);
+
+    p1.angle =
+        Math.atan2(
+            mouse.y - p1.y,
+            mouse.x - p1.x
+        );
+
+}
+
+/* =====================================================
+   PLAYER 2 UPDATE
+===================================================== */
+
+function updatePlayer2(){
+
+    if(mode !== 2)
+        return;
+
+    let dx = 0;
+    let dy = 0;
+
+    if(keys["i"]) dy -= 1;
+    if(keys["k"]) dy += 1;
+    if(keys["j"]) dx -= 1;
+    if(keys["l"]) dx += 1;
+
+    if(dx !== 0 || dy !== 0){
+
+        const len =
+            Math.hypot(dx,dy);
+
+        dx /= len;
+        dy /= len;
+
+        p2.x += dx * p2.speed;
+        p2.y += dy * p2.speed;
+
+    }
+
+    clampPlayer(p2);
+
+    /*
+       Arrow tugmalari bilan qurol yo‘nalishi
+    */
+
+    if(keys["arrowup"])
+        p2.angle = -Math.PI / 2;
+
+    if(keys["arrowdown"])
+        p2.angle = Math.PI / 2;
+
+    if(keys["arrowleft"])
+        p2.angle = Math.PI;
+
+    if(keys["arrowright"])
+        p2.angle = 0;
+
+}
+
+/* =====================================================
+   PLAYER CLAMP
+===================================================== */
+
+function clampPlayer(p){
+
+    p.x =
+        Math.max(
+            p.r,
+            Math.min(
+                canvas.width - p.r,
+                p.x
+            )
+        );
+
+    p.y =
+        Math.max(
+            p.r,
+            Math.min(
+                canvas.height - p.r,
+                p.y
+            )
+        );
+
+}
+
+/* =====================================================
+   FIRE DELAY
+===================================================== */
+
+function getFireDelay(){
+
+    return Math.max(
+        100,
+        750 - fireRate * 4.333
+    );
+
+}
+
+/* =====================================================
+   SHOOT P1
+===================================================== */
+
+function shootP1(time){
+
+    if(!mouse.down)
+        return;
+
+    const delay =
+        getFireDelay();
+
+    if(
+        time - lastShot1 <
+        delay
+    )
+        return;
+
+    lastShot1 = time;
+
+    createBullets(
+        p1,
+        p1.angle
+    );
+
+}
+
+/* =====================================================
+   SHOOT P2
+===================================================== */
+
+function shootP2(time){
+
+    if(mode !== 2)
+        return;
+
+    if(!keys[" "])
+        return;
+
+    const delay =
+        getFireDelay();
+
+    if(
+        time - lastShot2 <
+        delay
+    )
+        return;
+
+    lastShot2 = time;
+
+    createBullets(
+        p2,
+        p2.angle
+    );
+
+}
+
+/* =====================================================
+   CREATE BULLETS
+===================================================== */
+
+function createBullets(player,angle){
+
+    const angles = [];
+
+    if(shots === 1){
+
+        angles.push(angle);
+
+    }else{
+
+        const spread = 0.14;
+
+        for(
+            let i = 0;
+            i < shots;
+            i++
+        ){
+
+            const offset =
+                (
+                    i -
+                    (shots - 1) / 2
+                ) * spread;
+
+            angles.push(
+                angle + offset
+            );
+
+        }
+
+    }
+
+    angles.forEach(function(a){
+
+        const bulletSpeed =
+            12 + weaponLevel * 1.5;
+
+        bullets.push({
+
+            x:
+                player.x +
+                Math.cos(a) * 30,
+
+            y:
+                player.y +
+                Math.sin(a) * 30,
+
+            vx:
+                Math.cos(a) *
+                bulletSpeed,
+
+            vy:
+                Math.sin(a) *
+                bulletSpeed,
+
+            r:6,
+
+            damage:
+                damage +
+                weaponLevel * 3,
+
+            owner:player
+
+        });
+
+    });
+
+}
+
+/* =====================================================
+   SPAWN ZOMBIE
+===================================================== */
+
+function spawnZombie(){
+
+    const side =
+        Math.floor(
+            Math.random() * 4
+        );
+
+    let x;
+    let y;
+
+    if(side === 0){
+
+        x = -50;
+        y =
+            Math.random() *
+            canvas.height;
+
+    }
+
+    if(side === 1){
+
+        x = canvas.width + 50;
+        y =
+            Math.random() *
+            canvas.height;
+
+    }
+
+    if(side === 2){
+
+        x =
+            Math.random() *
+            canvas.width;
+
+        y = -50;
+
+    }
+
+    if(side === 3){
+
+        x =
+            Math.random() *
+            canvas.width;
+
+        y =
+            canvas.height + 50;
+
+    }
+
+    const hp =
+        30 +
+        level * 12 +
+        Math.random() *
+        level * 5;
+
+    const speed =
+        0.8 +
+        level * 0.07 +
+        Math.random() * 0.45;
+
+    const zombieDamage =
+        0.35 +
+        level * 0.045;
+
+    const radius =
+        20 +
+        Math.random() * 5;
+
+    zombies.push({
+
+        x:x,
+        y:y,
+
+        r:radius,
+
+        hp:hp,
+        maxHp:hp,
+
+        speed:speed,
+        damage:zombieDamage
+
+    });
+
+}
+
+/* =====================================================
+   UPDATE ZOMBIES
+===================================================== */
+
+function updateZombies(){
+
+    zombies.forEach(function(z){
+
+        let target = p1;
+
+        if(mode === 2){
+
+            const d1 =
+                Math.hypot(
+                    p1.x - z.x,
+                    p1.y - z.y
+                );
+
+            const d2 =
+                Math.hypot(
+                    p2.x - z.x,
+                    p2.y - z.y
+                );
+
+            target =
+                d2 < d1
+                ? p2
+                : p1;
+
+        }
+
+        const angle =
+            Math.atan2(
+                target.y - z.y,
+                target.x - z.x
+            );
+
+        z.x +=
+            Math.cos(angle) *
+            z.speed;
+
+        z.y +=
+            Math.sin(angle) *
+            z.speed;
+
+        const distance =
+            Math.hypot(
+                target.x - z.x,
+                target.y - z.y
+            );
+
+        if(
+            distance <
+            target.r + z.r
+        ){
+
+            target.hp -=
+                z.damage;
+
+        }
+
+    });
+
+    updateHPs();
+
+    if(mode === 1){
+
+        if(p1.hp <= 0){
+
+            gameOver();
+
+        }
+
+    }else{
+
+        if(
+            p1.hp <= 0 &&
+            p2.hp <= 0
+        ){
+
+            gameOver();
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   BULLET UPDATE
+===================================================== */
+
+function updateBullets(){
+
+    bullets.forEach(function(b){
+
+        b.x += b.vx;
+        b.y += b.vy;
+
+    });
+
+    bullets =
+        bullets.filter(function(b){
+
+            return (
+                b.x > -100 &&
+                b.x <
+                    canvas.width + 100 &&
+                b.y > -100 &&
+                b.y <
+                    canvas.height + 100
+            );
+
+        });
+
+}
+
+/* =====================================================
+   COLLISIONS
+===================================================== */
+
+function collisions(){
+
+    for(
+        let i = bullets.length - 1;
+        i >= 0;
+        i--
+    ){
+
+        const b = bullets[i];
+
+        for(
+            let j = zombies.length - 1;
+            j >= 0;
+            j--
+        ){
+
+            const z = zombies[j];
+
+            const d =
+                Math.hypot(
+                    b.x - z.x,
+                    b.y - z.y
+                );
+
+            if(
+                d <
+                b.r + z.r
+            ){
+
+                z.hp -=
+                    b.damage;
+
+                bullets.splice(i,1);
+
+                if(z.hp <= 0){
+
+                    killZombie(
+                        j,
+                        z
+                    );
+
+                }
+
+                break;
+
+            }
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   KILL ZOMBIE
+===================================================== */
+
+function killZombie(index,z){
+
+    zombies.splice(
+        index,
+        1
+    );
+
+    const coinAmount =
+        3 +
+        Math.floor(
+            Math.random() *
+            (
+                2 +
+                Math.floor(
+                    level / 3
+                )
+            )
+        );
+
+    drops.push({
+
+        x:z.x,
+        y:z.y,
+
+        value:coinAmount,
+
+        life:1000
+
+    });
+
+    kills++;
+    levelKills++;
+
+    const neededKills =
+        8 + level * 2;
+
+    if(
+        levelKills >=
+        neededKills
+    ){
+
+        level++;
+
+        levelKills = 0;
+
+        p1.hp =
+            Math.min(
+                maxHP,
+                p1.hp + 25
+            );
+
+        if(mode === 2){
+
+            p2.hp =
+                Math.min(
+                    maxHP,
+                    p2.hp + 25
+                );
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   COIN UPDATE
+===================================================== */
+
+function updateDrops(){
+
+    for(
+        let i = drops.length - 1;
+        i >= 0;
+        i--
+    ){
+
+        const c =
+            drops[i];
+
+        c.life--;
+
+        let target = p1;
+
+        if(mode === 2){
+
+            const d1 =
+                Math.hypot(
+                    p1.x - c.x,
+                    p1.y - c.y
+                );
+
+            const d2 =
+                Math.hypot(
+                    p2.x - c.x,
+                    p2.y - c.y
+                );
+
+            target =
+                d2 < d1
+                ? p2
+                : p1;
+
+        }
+
+        const d =
+            Math.hypot(
+                target.x - c.x,
+                target.y - c.y
+            );
+
+        if(d < 120){
+
+            const angle =
+                Math.atan2(
+                    target.y - c.y,
+                    target.x - c.x
+                );
+
+            c.x +=
+                Math.cos(angle) * 5;
+
+            c.y +=
+                Math.sin(angle) * 5;
+
+        }
+
+        if(
+            d <
+            target.r + 12
+        ){
+
+            coins +=
+                c.value;
+
+            drops.splice(
+                i,
+                1
+            );
+
+        }
+
+        if(c.life <= 0){
+
+            drops.splice(
+                i,
+                1
+            );
+
+        }
+
+    }
+
+}
+
+/* =====================================================
+   DRAW ARENA
+===================================================== */
+
+function drawArena(){
+
+    ctx.fillStyle =
+        "#060a08";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    ctx.strokeStyle =
+        "rgba(70,255,100,.055)";
+
+    const size = 60;
+
+    for(
+        let x = 0;
+        x < canvas.width;
+        x += size
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            0
+        );
+
+        ctx.lineTo(
+            x,
+            canvas.height
+        );
+
+        ctx.stroke();
+
+    }
+
+    for(
+        let y = 0;
+        y < canvas.height;
+        y += size
+    ){
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            y
+        );
+
+        ctx.lineTo(
+            canvas.width,
+            y
+        );
+
+        ctx.stroke();
+
+    }
+
+}
+
+/* =====================================================
+   DRAW PLAYER
+===================================================== */
+
+function drawPlayer(p,color){
+
+    ctx.save();
+
+    ctx.translate(
+        p.x,
+        p.y
+    );
+
+    ctx.rotate(
+        p.angle
+    );
+
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = color;
+
+    ctx.fillStyle = color;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        0,
+        p.r,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle =
+        "#07110a";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        0,
+        p.r - 6,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+    /* QUROL */
+
+    const gunLength =
+        45 +
+        weaponLevel * 7;
+
+    ctx.fillStyle =
+        "#ddd";
+
+    ctx.fillRect(
+        12,
+        -5,
+        gunLength,
+        10
+    );
+
+    if(shots >= 2){
+
+        ctx.fillRect(
+            12,
+            8,
+            gunLength,
+            6
+        );
+
+    }
+
+    if(shots >= 3){
+
+        ctx.fillRect(
+            12,
+            -14,
+            gunLength,
+            6
+        );
+
+    }
+
+    if(shots >= 4){
+
+        ctx.fillRect(
+            12,
+            16,
+            gunLength,
+            5
+        );
+
+    }
+
+    if(shots >= 5){
+
+        ctx.fillRect(
+            12,
+            -21,
+            gunLength,
+            5
+        );
+
+    }
+
+    ctx.restore();
+
+}
+
+/* =====================================================
+   DRAW ZOMBIES
+===================================================== */
+
+function drawZombies(){
+
+    zombies.forEach(function(z){
+
+        ctx.shadowBlur = 20;
+        ctx.shadowColor =
+            "#ff1744";
+
+        ctx.fillStyle =
+            "#a72d43";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            z.x,
+            z.y,
+            z.r,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        /* EYES */
+
+        ctx.fillStyle =
+            "white";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            z.x - 6,
+            z.y - 4,
+            4,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            z.x + 6,
+            z.y - 4,
+            4,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        /* HP */
+
+        ctx.fillStyle =
+            "#222";
+
+        ctx.fillRect(
+            z.x - 22,
+            z.y - z.r - 11,
+            44,
+            5
+        );
+
+        ctx.fillStyle =
+            "#45ff62";
+
+        ctx.fillRect(
+            z.x - 22,
+            z.y - z.r - 11,
+            44 *
+            Math.max(
+                0,
+                z.hp / z.maxHp
+            ),
+            5
+        );
+
+    });
+
+}
+
+/* =====================================================
+   DRAW BULLETS
+===================================================== */
+
+function drawBullets(){
+
+    bullets.forEach(function(b){
+
+        ctx.shadowBlur = 20;
+
+        ctx.shadowColor =
+            "#ffe600";
+
+        ctx.fillStyle =
+            "#ffe600";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            b.x,
+            b.y,
+            b.r,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+    });
+
+}
+
+/* =====================================================
+   DRAW COINS
+===================================================== */
+
+function drawDrops(){
+
+    drops.forEach(function(c){
+
+        ctx.shadowBlur = 20;
+
+        ctx.shadowColor =
+            "#ffd400";
+
+        ctx.fillStyle =
+            "#ffd400";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            c.x,
+            c.y,
+            10,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle =
+            "#8c6500";
+
+        ctx.font =
+            "bold 11px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
+
+        ctx.fillText(
+            "$",
+            c.x,
+            c.y
+        );
+
+    });
+
+}
+
+/* =====================================================
+   HP UI
+===================================================== */
+
+function updateHPs(){
+
+    document.getElementById(
+        "hp1"
+    ).style.width =
+        Math.max(
+            0,
+            p1.hp / maxHP * 100
+        ) + "%";
+
+    document.getElementById(
+        "hp2"
+    ).style.width =
+        Math.max(
+            0,
+            p2.hp / maxHP * 100
+        ) + "%";
+
+}
+
+/* =====================================================
+   MAIN UI
+===================================================== */
+
+function updateUI(){
+
+    document.getElementById(
+        "coinsUI"
+    ).textContent =
+        coins;
+
+    document.getElementById(
+        "levelUI"
+    ).textContent =
+        level;
+
+    document.getElementById(
+        "weaponUI"
+    ).textContent =
+        weaponLevel +
+        "/" +
+        maxWeaponLevel;
+
+    document.getElementById(
+        "speedUI"
+    ).textContent =
+        fireRate;
+
+    document.getElementById(
+        "zombieUI"
+    ).textContent =
+        zombies.length;
+
+    document.getElementById(
+        "shopCoinNumber"
+    ).textContent =
+        coins;
+
+    updateHPs();
+
+}
+
+/* =====================================================
+   SHOP OPEN
+===================================================== */
+
+homeBtn.addEventListener(
+    "click",
+    function(){
+
+        if(!started || stopped)
+            return;
+
+        paused = true;
+
+        shop.style.display =
+            "flex";
+
+        updateShop();
+
+    }
+);
+
+/* =====================================================
+   SHOP CLOSE
+===================================================== */
+
+document
+    .getElementById("closeShop")
+    .addEventListener(
+        "click",
+        function(){
+
+            paused = false;
+
+            shop.style.display =
+                "none";
+
+        }
+    );
+
+/* =====================================================
+   UPDATE SHOP
+===================================================== */
+
+function updateShop(){
+
+    /* WEAPON */
+
+    const weaponCost =
+        60 +
+        weaponLevel * 60;
+
+    const weaponBtn =
+        document.getElementById(
+            "weaponBuy"
+        );
+
+    document.getElementById(
+        "weaponLevelText"
+    ).textContent =
+        weaponLevel;
+
+    if(
+        weaponLevel >=
+        maxWeaponLevel
+    ){
+
+        weaponBtn.textContent =
+            "MAXIMUM";
+
+        weaponBtn.disabled =
+            true;
+
+    }else{
+
+        weaponBtn.textContent =
+            "🪙 " +
+            weaponCost;
+
+        weaponBtn.disabled =
+            coins < weaponCost;
+
+    }
+
+    /* SHOTS */
+
+    const shotsCost =
+        70 +
+        shots * 45;
+
+    const shotsBtn =
+        document.getElementById(
+            "shotsBuy"
+        );
+
+    document.getElementById(
+        "shotsLevelText"
+    ).textContent =
+        shots;
+
+    if(
+        shots >=
+        maxShots
+    ){
+
+        shotsBtn.textContent =
+            "MAXIMUM";
+
+        shotsBtn.disabled =
+            true;
+
+    }else{
+
+        shotsBtn.textContent =
+            "🪙 " +
+            shotsCost;
+
+        shotsBtn.disabled =
+            coins < shotsCost;
+
+    }
+
+    /* FIRE RATE */
+
+    const rateCost =
+        Math.floor(
+            35 +
+            fireRate * 1.2
+        );
+
+    const rateBtn =
+        document.getElementById(
+            "fireRateBuy"
+        );
+
+    document.getElementById(
+        "fireRateLevelText"
+    ).textContent =
+        fireRate;
+
+    if(
+        fireRate >=
+        maxFireRate
+    ){
+
+        rateBtn.textContent =
+            "MAXIMUM";
+
+        rateBtn.disabled =
+            true;
+
+    }else{
+
+        rateBtn.textContent =
+            "🪙 " +
+            rateCost;
+
+        rateBtn.disabled =
+            coins < rateCost;
+
+    }
+
+    /* DAMAGE */
+
+    const damageCost =
+        25 +
+        damage * 2;
+
+    const damageBtn =
+        document.getElementById(
+            "damageBuy"
+        );
+
+    document.getElementById(
+        "damageLevelText"
+    ).textContent =
+        damage;
+
+    damageBtn.textContent =
+        "🪙 " +
+        damageCost;
+
+    damageBtn.disabled =
+        coins < damageCost;
+
+}
+
+/* =====================================================
+   BUY WEAPON
+===================================================== */
+
+document
+    .getElementById("weaponBuy")
+    .addEventListener(
+        "click",
+        function(){
+
+            if(
+                weaponLevel >=
+                maxWeaponLevel
+            )
+                return;
+
+            const cost =
+                60 +
+                weaponLevel * 60;
+
+            if(coins < cost)
+                return;
+
+            coins -= cost;
+
+            weaponLevel++;
+
+            updateUI();
+            updateShop();
+
+        }
+    );
+
+/* =====================================================
+   BUY SHOTS
+===================================================== */
+
+document
+    .getElementById("shotsBuy")
+    .addEventListener(
+        "click",
+        function(){
+
+            if(
+                shots >=
+                maxShots
+            )
+                return;
+
+            const cost =
+                70 +
+                shots * 45;
+
+            if(coins < cost)
+                return;
+
+            coins -= cost;
+
+            shots++;
+
+            updateUI();
+            updateShop();
+
+        }
+    );
+
+/* =====================================================
+   BUY FIRE RATE
+===================================================== */
+
+document
+    .getElementById("fireRateBuy")
+    .addEventListener(
+        "click",
+        function(){
+
+            if(
+                fireRate >=
+                maxFireRate
+            )
+                return;
+
+            const cost =
+                Math.floor(
+                    35 +
+                    fireRate * 1.2
+                );
+
+            if(coins < cost)
+                return;
+
+            coins -= cost;
+
+            fireRate =
+                Math.min(
+                    maxFireRate,
+                    fireRate + 15
+                );
+
+            updateUI();
+            updateShop();
+
+        }
+    );
+
+/* =====================================================
+   BUY DAMAGE
+===================================================== */
+
+document
+    .getElementById("damageBuy")
+    .addEventListener(
+        "click",
+        function(){
+
+            const cost =
+                25 +
+                damage * 2;
+
+            if(coins < cost)
+                return;
+
+            coins -= cost;
+
+            damage += 5;
+
+            updateUI();
+            updateShop();
+
+        }
+    );
+
+/* =====================================================
+   GAME OVER
+===================================================== */
+
+function gameOver(){
+
+    if(stopped)
+        return;
+
+    stopped = true;
+    started = false;
+
+    homeBtn.style.display =
+        "none";
+
+    shop.style.display =
+        "none";
+
+    gameOverScreen.style.display =
+        "flex";
+
+    document.getElementById(
+        "finalText"
+    ).innerHTML =
+        `
+        🧟 O‘ldirilgan zombilar:
+        <b>${kills}</b>
+        <br><br>
+        ⭐ Level:
+        <b>${level}</b>
+        <br><br>
+        🪙 Tangalar:
+        <b>${coins}</b>
+        `;
+
+}
+
+/* =====================================================
+   RESTART
+===================================================== */
+
+document
+    .getElementById("restartBtn")
+    .addEventListener(
+        "click",
+        function(){
+
+            gameOverScreen.style.display =
+                "none";
+
+            startScreen.style.display =
+                "flex";
+
+            ui.style.display =
+                "none";
+
+            modeScreen.style.display =
+                "none";
+
+            started = false;
+            stopped = false;
+            paused = false;
+
+            mouse.down = false;
+
+        }
+    );
+
+/* =====================================================
+   GAME LOOP
+===================================================== */
+
+let lastTime = 0;
+
+function loop(time){
+
+    if(stopped)
+        return;
+
+    requestAnimationFrame(loop);
+
+    if(paused){
+
+        lastTime = time;
+
+        return;
+
+    }
+
+    const delta =
+        Math.min(
+            40,
+            time - lastTime
+        );
+
+    lastTime = time;
+
+    /* PLAYER */
+
+    updatePlayer1();
+
+    if(mode === 2)
+        updatePlayer2();
+
+    /* SHOOT */
+
+    shootP1(time);
+
+    if(mode === 2)
+        shootP2(time);
+
+    /* SPAWN */
+
+    spawnTimer += delta;
+
+    const spawnDelay =
+        Math.max(
+            300,
+            1100 -
+            level * 35
+        );
+
+    if(
+        spawnTimer >=
+        spawnDelay
+    ){
+
+        spawnTimer = 0;
+
+        /*
+           1P = 1 zombie
+           2P = 2 zombie
+        */
+
+        const amount =
+            mode === 2
+            ? 2
+            : 1;
+
+        for(
+            let i = 0;
+            i < amount;
+            i++
+        ){
+
+            spawnZombie();
+
+        }
+
+    }
+
+    /* UPDATE */
+
+    updateBullets();
+    collisions();
+    updateZombies();
+    updateDrops();
+
+    /* DRAW */
+
+    drawArena();
+
+    drawDrops();
+    drawBullets();
+    drawZombies();
+
+    /* PLAYER 1 */
+
+    drawPlayer(
+        p1,
+        "#36e86b"
+    );
+
+    /*
+       FAQAT 2 KISHILIKDA
+       2-O‘YINCHI CHIZILADI
+    */
+
+    if(mode === 2){
+
+        drawPlayer(
+            p2,
+            "#ff3e68"
+        );
+
+    }
+
+    updateUI();
+
+}
+
+/* =====================================================
+   INITIAL UI
+===================================================== */
+
+updateUI();
+
+</script>
+
+</body>
+</html>
